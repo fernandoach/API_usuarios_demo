@@ -1,7 +1,8 @@
 import express from 'express'
-import { connectToDb } from './db/context.js'
+import { connectToDb, disconnectFromDb } from './db/context.js'
 import UserModel from './db/models/userModel.js'
 import bcrypt from 'bcrypt'
+import mongoose from 'mongoose'
 
 const app = express()
 
@@ -31,6 +32,10 @@ app.post('/',
         response.json({ message: 'Ya existe una cuenta con ese correo electrónico' })
       }
       response.json({ message: error.message })
+    } finally {
+      if (mongoose.connection.readyState === 1) {
+        await disconnectFromDb()
+      }
     }
   }
 )
