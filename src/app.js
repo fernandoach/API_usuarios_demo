@@ -25,13 +25,19 @@ app.post('/',
       await newUser.save()
       response.json({ newUser })
     } catch (error) {
+      // Enviar solo una respuesta
+      let message
+
       if (error.message.includes('ECONNREFUSED')) {
-        response.json({ message: 'No se pudo conectar a la base de datos' })
+        message = 'No se pudo conectar a la base de datos'
+      } else if (error.code === 11000) {
+        message = 'Ya existe una cuenta con ese correo electrónico'
+      } else {
+        message = error.message
       }
-      if (error.code === 11000) {
-        response.json({ message: 'Ya existe una cuenta con ese correo electrónico' })
-      }
-      response.json({ message: error.message })
+
+      // Enviar la respuesta solo una vez
+      response.status(400).json({ message })
     } finally {
       if (mongoose.connection.readyState === 1) {
         await disconnectFromDb()
